@@ -34,7 +34,7 @@ class PasswordManager:
     for element in content:
       splitlist = element.split(':', 2)
       if (len(splitlist) != 1):
-        password_list.append([splitlist[0], splitlist[1], splitlist[2]])
+        password_list.append([str(content.index(element)), splitlist[0], splitlist[1], splitlist[2]])
 
     return password_list
 
@@ -50,6 +50,7 @@ class PasswordManager:
     for element in list:
       for x in element:
         print('{:20s}'.format(x), end="")
+      print("")
     
     print("")
 # +------------------------------------------------------------------+
@@ -57,9 +58,9 @@ class PasswordManager:
 # +------------------------------------------------------------------+
   def run(self):
     self.__printHeader()
-    print("1.) Eine neue Datenbank erstellen")
-    print("2.) Eine bereits existierende Datenbank auswählen")
-    print("3.) Beenden")
+    print(" 1.) Eine neue Datenbank erstellen")
+    print(" 2.) Eine bereits existierende Datenbank auswählen")
+    print(" 3.) Beenden")
 
     print("Was möchten Sie tun? ", end = "")
     option = int(input())
@@ -101,11 +102,11 @@ class PasswordManager:
 # +------------------------------------------------------------------+
   def showDatabaseMenu(self, file):
     self.__printHeader("(" + os.path.basename(file.name) + ")")
-    print("1.) Existierende Passwörter anzeigen")
-    print("2.) Neues Passwort hinzufügen")
-    print("3.) Löschen eines Passworts")
-    print("4.) Aktualisieren eines Passworts")
-    print("5.) Beenden")
+    print(" 1.) Existierende Passwörter anzeigen")
+    print(" 2.) Neues Passwort hinzufügen")
+    print(" 3.) Löschen eines Passworts")
+    print(" 4.) Aktualisieren eines Passworts")
+    print(" 5.) Beenden")
 
     print("Was möchten Sie tun? ", end = "")
     option = int(input())
@@ -116,13 +117,29 @@ class PasswordManager:
         self.__printPasswords(password_list)
 
       if (option == 2):
+        print("Geben sie einen Usernamen ein: ")
+        username = str(input())
+        print("Geben sie ein Passwort ein: ")
+        password = str(input())
+        print("Geben sie eine URL ein (optional): ")
+        url = str(input())
+
+        # Get append permissions
+        file = open(file.name, 'a')
+        file.write(username + ':' + password + ':' + url + '\n')
+        
         print("")
       
       if (option == 3):
-        print("")
+        password_list = self.__getPasswordList(file)
+        self.__printPasswords(password_list)
+        # get input
 
       if (option == 4):
-        print("")
+        password_list = self.__getPasswordList(file)
+        self.__printPasswords(password_list)
+        print(password_list)
+        # get input
 
       if (option == 5):
         return
