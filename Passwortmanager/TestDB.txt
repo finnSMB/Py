@@ -1,0 +1,2 @@
+mustermann:passwort1:https://schule.de:text
+musterfrau:passwort2:
