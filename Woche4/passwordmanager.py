@@ -53,6 +53,16 @@ class PasswordManager:
       print("")
     
     print("")
+  
+  def __updateDatabase(self, file, new_password_list):
+    print(new_password_list)
+    file.write("")
+    file = open(file.name, 'a')
+    for entry in new_password_list:
+      file.write(entry[1] + ':' + entry[2] + ':' + entry[3] + '\n')
+    
+    file = open(file.name, 'r')
+
 # +------------------------------------------------------------------+
 # |                Show initial menu with 3 options                  |
 # +------------------------------------------------------------------+
@@ -124,7 +134,7 @@ class PasswordManager:
         print("Geben sie eine URL ein (optional): ")
         url = str(input())
 
-        # Get append permissions
+        # append to file
         file = open(file.name, 'a')
         file.write(username + ':' + password + ':' + url + '\n')
         
@@ -134,6 +144,13 @@ class PasswordManager:
         password_list = self.__getPasswordList(file)
         self.__printPasswords(password_list)
         # get input
+        print("Welches Passwort soll gelöscht werden? ", end = "")
+        option = int(input())
+        password_list.remove(password_list[option])
+
+        file = open(file.name, 'w')
+        self.__updateDatabase(file, password_list)
+
 
       if (option == 4):
         password_list = self.__getPasswordList(file)
