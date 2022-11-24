@@ -89,16 +89,16 @@ class PasswordManager:
 
       # SHOW LIST OF DATABASES
       if (option == 2):
-        folderDictionary = self.__getFolderContentList()
+        folder_list = self.__getFolderContentList()
 
-        for idx, x in enumerate(folderDictionary):
+        for idx, x in enumerate(folder_list):
           print("{0}.) {1}".format(idx,x))
 
         print("Bitte geben Sie die Nummer der auszuwählenden Datenbank ein: ", end = "")
         option = int(input())
 
         # Databank assigned
-        databank = self.__folderpath + folderDictionary[option]
+        databank = self.__folderpath + folder_list[option]
 
         file = open(databank, 'r')
         
@@ -136,7 +136,6 @@ class PasswordManager:
         print("Geben sie eine URL ein (optional): ")
         url = str(input())
 
-        # append to file
         file = open(file.name, 'a')
         file.write(username + ':' + password + ':' + url + '\n')
         
@@ -145,7 +144,7 @@ class PasswordManager:
       if (option == 3):
         password_list = self.__getPasswordList(file)
         self.__printPasswords(password_list)
-        # get input
+        
         print("Welches Passwort soll gelöscht werden? ", end = "")
         option = int(input())
         password_list.remove(password_list[option])
@@ -157,7 +156,7 @@ class PasswordManager:
       if (option == 4):
         password_list = self.__getPasswordList(file)
         self.__printPasswords(password_list)
-        # get input
+        
         print("Welches Passwort soll geändert werden? ", end = "")
         option = int(input())
 
