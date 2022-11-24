@@ -10,42 +10,49 @@ class PasswordManager:
 # +------------------------------------------------------------------+
 # |                        Private functions                         |
 # +------------------------------------------------------------------+
+  # Check if folder exists and if not, create one
   def __createFolder(self):
     if os.path.isdir(self.__folderpath):
       return
     else:
       os.makedirs(self.__folderpath)
   
+  # Get a list of all the files inside the folder
   def __getFolderContentList(self):
     dir_content = os.listdir(self.__folderpath)
     return dir_content
   
+  # Print pretty menubar, optional text usually is the selected database
   def __printHeader(self, additionalText=""):
     print("="*40)
     print('{:^40s}'.format(self.name + " " + additionalText))
     print("="*40)
 
+  # get the password list
   def __getPasswordList(self, file):
     password_list = list()
 
     file_content = file.read()
+
+    # new entries are determined by linebreaks, create a list which each line
     content = file_content.split('\n')
 
+    # iterate through each line
     for element in content:
       splitlist = element.split(':')
 
-      if len(splitlist) == 1:
-        print()
-      else:
+      # when the length is only 1, it means its an empty line, skip over that
+      if len(splitlist) != 1:
+        # would be better to use .find('https') but works so whatever
         if (splitlist[2] == 'https'):
           splitlist[2] = splitlist[2] + ':' + splitlist[3]
           splitlist.remove(splitlist[3])
 
-        if (len(splitlist) != 1):
-          password_list.append([str(content.index(element)), splitlist[0], splitlist[1], splitlist[2], splitlist[3]])
+        password_list.append([str(content.index(element)), splitlist[0], splitlist[1], splitlist[2], splitlist[3]])
 
     return password_list
 
+  # create a pretty console output that looks like a table
   def __printPasswords(self, list: list):
     print("-"*100)
     print('{:20s}'.format('Index'), end="")
@@ -62,17 +69,16 @@ class PasswordManager:
     
     print("")
   
+  # rewrite the whole database with the updated and new list entries
   def __updateDatabase(self, file, new_password_list):
-    print(new_password_list)
     file.write("")
     file = open(file.name, 'a')
     for entry in new_password_list:
       file.write(entry[1] + ':' + entry[2] + ':' + entry[3] + ':' + entry[4] + '\n')
     
+    # reset permission
     file = open(file.name, 'r')
 
-  def __updatePassword(self, file):
-    print("HELLO")
 # +------------------------------------------------------------------+
 # |                Show initial menu with 3 options                  |
 # +------------------------------------------------------------------+
