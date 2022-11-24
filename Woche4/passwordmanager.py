@@ -32,9 +32,17 @@ class PasswordManager:
     content = file_content.split('\n')
 
     for element in content:
-      splitlist = element.split(':', 2)
-      if (len(splitlist) != 1):
-        password_list.append([str(content.index(element)), splitlist[0], splitlist[1], splitlist[2]])
+      splitlist = element.split(':')
+
+      if len(splitlist) == 1:
+        print()
+      else:
+        if (splitlist[2] == 'https'):
+          splitlist[2] = splitlist[2] + ':' + splitlist[3]
+          splitlist.remove(splitlist[3])
+
+        if (len(splitlist) != 1):
+          password_list.append([str(content.index(element)), splitlist[0], splitlist[1], splitlist[2], splitlist[3]])
 
     return password_list
 
@@ -59,7 +67,7 @@ class PasswordManager:
     file.write("")
     file = open(file.name, 'a')
     for entry in new_password_list:
-      file.write(entry[1] + ':' + entry[2] + ':' + entry[3] + '\n')
+      file.write(entry[1] + ':' + entry[2] + ':' + entry[3] + ':' + entry[4] + '\n')
     
     file = open(file.name, 'r')
 
@@ -78,36 +86,35 @@ class PasswordManager:
     option = int(input())
     print("")
 
-    if (type(option) == int):
-      # create DB
-      if (option == 1):
-        print("Bitte geben sie der neuen Datenbank einen geeigneten Namen: ", end = "")
-        name = str(input())
-        file = open(self.__folderpath + name + ".txt", "w")
+
+    # create DB
+    if (option == 1):
+      print("Bitte geben sie der neuen Datenbank einen geeigneten Namen: ", end = "")
+      name = str(input())
+      file = open(self.__folderpath + name + ".txt", "w")
+      
+      self.showDatabaseMenu(file)
+
+    # SHOW LIST OF DATABASES
+    if (option == 2):
+      folder_list = self.__getFolderContentList()
+
+      for idx, x in enumerate(folder_list):
+        print("{0}.) {1}".format(idx,x))
+
+      print("Bitte geben Sie die Nummer der auszuwählenden Datenbank ein: ", end = "")
+      option = int(input())
+
+      databank = self.__folderpath + folder_list[option]
+
+      file = open(databank, 'r')
         
-        self.showDatabaseMenu(file)
+      self.showDatabaseMenu(file)
 
-      # SHOW LIST OF DATABASES
-      if (option == 2):
-        folder_list = self.__getFolderContentList()
-
-        for idx, x in enumerate(folder_list):
-          print("{0}.) {1}".format(idx,x))
-
-        print("Bitte geben Sie die Nummer der auszuwählenden Datenbank ein: ", end = "")
-        option = int(input())
-
-        # Databank assigned
-        databank = self.__folderpath + folder_list[option]
-
-        file = open(databank, 'r')
-        
-        self.showDatabaseMenu(file)
       # exit
       if (option == 3):
         return
-    else:
-      print("Falscher Input, bitte nur Ganzzahlen benutzen!")
+
 
 # +------------------------------------------------------------------+
 # |                Show detailed database menu options               |
@@ -133,11 +140,13 @@ class PasswordManager:
         username = str(input())
         print("Geben sie ein Passwort ein: ")
         password = str(input())
-        print("Geben sie eine URL ein (optional): ")
+        print("Geben sie eine URL ein: ")
         url = str(input())
+        print("Geben sie eine Notiz: ")
+        notiz = str(input())
 
         file = open(file.name, 'a')
-        file.write(username + ':' + password + ':' + url + '\n')
+        file.write(username + ':' + password + ':' + url + ':' + notiz + '\n')
         
         print("")
       
