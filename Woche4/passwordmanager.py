@@ -63,6 +63,8 @@ class PasswordManager:
     
     file = open(file.name, 'r')
 
+  def __updatePassword(self, file):
+    print("HELLO")
 # +------------------------------------------------------------------+
 # |                Show initial menu with 3 options                  |
 # +------------------------------------------------------------------+
@@ -155,8 +157,15 @@ class PasswordManager:
       if (option == 4):
         password_list = self.__getPasswordList(file)
         self.__printPasswords(password_list)
-        print(password_list)
         # get input
+        print("Welches Passwort soll geändert werden? ", end = "")
+        option = int(input())
+
+        print("Bitte geben sie ein neues Passwort ein:  ")
+        password_list[option][2] = str(input())
+
+        file = open(file.name, 'w')
+        self.__updateDatabase(file, password_list)
 
       if (option == 5):
         return
