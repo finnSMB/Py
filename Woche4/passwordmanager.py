@@ -64,19 +64,21 @@ class PasswordManager:
 
   # create a pretty console output that looks like a table
   def __printPasswords(self, list: list)-> None:
-    table = Texttable()
-    row = [
-      ["Index", "Name", "Passwort", "URL", "Notiz"],
+    table = Texttable(110)
+    rows = [
+      ['Index', 'Name', 'Passwort', 'URL', 'Notiz'],
     ]
 
     for element in list:
       temp_row = []
       for x in element:
         temp_row.append(x)
-      row.append(temp_row)
+      rows.append(temp_row)
 
-    table.add_rows(row)
+    table.add_rows(rows)
     table.set_deco(Texttable.HEADER | Texttable.BORDER)
+    table.set_cols_dtype(['i', 't', 't', 't', 't'])
+    table.set_cols_align(['c', 'r', 'r', 'r', 'l'])
     print(table.draw())
 
   # rewrite the whole database with the updated and new list entries
