@@ -1,5 +1,7 @@
-from cryptography.fernet import Fernet
 import os
+from rich import print
+from texttable import Texttable
+from cryptography.fernet import Fernet
 
 class PasswordManager:
   def __init__(self, name: str):
@@ -61,19 +63,20 @@ class PasswordManager:
 
   # create a pretty console output that looks like a table
   def __printPasswords(self, list: list)-> None:
-    print('-'*100)
-    print('{:20s}'.format('Index'), end='')
-    print('{:20s}'.format('Name'), end='')
-    print('{:20s}'.format('Passwort'), end='')
-    print('{:20s}'.format('URL'), end='')
-    print('{:20s}'.format('Notiz'))
-    print('-'*100)
+    table = Texttable()
+    row = [
+      ["Index", "Name", "Passwort", "URL", "Notiz"],
+    ]
 
     for element in list:
+      temp_row = []
       for x in element:
-        print('{:20s}'.format(x), end='')
-      print('')
-    print('')
+        temp_row.append(x)
+      row.append(temp_row)
+
+    table.add_rows(row)
+    table.set_deco(Texttable.HEADER | Texttable.BORDER)
+    print(table.draw())
 
   # rewrite the whole database with the updated and new list entries
   def __updateDatabase(self, file, new_password_list: list)-> None:
@@ -156,7 +159,6 @@ class PasswordManager:
       databank = self.__folderpath + folder_list[option]
 
       file = open(databank, 'r')
-        
       self.__showDatabaseMenu(file)
 
       # exit
@@ -183,10 +185,12 @@ class PasswordManager:
       option = int(input())
   
       if (option == 1):
+        # Show passwords
         self.__decryptFile(file_name)
         password_list = self.__getPasswordList(file)
         self.__printPasswords(password_list)
       elif (option == 2):
+        # Add new password
         self.__decryptFile(file_name)
         print('Geben Sie einen Usernamen ein: ')
         username = str(input())
@@ -203,6 +207,7 @@ class PasswordManager:
         file = open(file.name, 'r')
         print('')
       elif (option == 3):
+        # Delete password 
         self.__decryptFile(file_name)
         password_list = self.__getPasswordList(file)
         self.__printPasswords(password_list)
@@ -214,6 +219,7 @@ class PasswordManager:
         file = open(file.name, 'w')
         self.__updateDatabase(file, password_list)
       elif (option == 4):
+        # Update password
         self.__decryptFile(file_name)
         password_list = self.__getPasswordList(file)
         self.__printPasswords(password_list)
