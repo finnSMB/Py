@@ -1,3 +1,4 @@
+# to execute, please install via pip: rich, texttable, cryptography
 import os
 from rich import print
 from texttable import Texttable
