@@ -16,17 +16,15 @@ class PasswordManager:
     if os.path.isdir(self.__folderpath):
       return
     else: 
-      os.makedirs(self.__folderpath)
+      # Creates folder with NAME and KEYS folder inside it
       os.makedirs(self.__folderpath + 'Keys')
 
   # Get a list of all the files inside the folder
   def __getFolderContentList(self)-> list:
     dir_content = os.listdir(self.__folderpath)
 
-    # remove folders and only show files
-    for item in dir_content:
-      if os.path.isfile(item) == False:
-        dir_content.remove(item)
+    # remove Keys folder
+    dir_content.remove('Keys')
 
     return dir_content
 
@@ -40,6 +38,7 @@ class PasswordManager:
   def __getPasswordList(self, file)-> list:
     password_list = list()
 
+    file = open(file.name, 'r')
     file_content = file.read()
 
     # new entries are determined by linebreaks, create a list which each line
@@ -99,7 +98,7 @@ class PasswordManager:
       key = filekey.read()
     return key
 
-  def __encryptFile(self, name):
+  def __encryptFile(self, name)-> None:
     fernet = Fernet(self.__loadKey(name))
     with open(self.__folderpath + name + '.txt', 'rb') as file:
       original = file.read()
@@ -108,7 +107,7 @@ class PasswordManager:
     with open(self.__folderpath + name + '.txt', 'wb') as encrypted_file:
       encrypted_file.write(encrypted)
 
-  def __decryptFile(self, name):
+  def __decryptFile(self, name)-> None:
     fernet = Fernet(self.__loadKey(name))
     with open(self.__folderpath + name + '.txt', 'rb') as enc_file:
       encrypted = enc_file.read()
@@ -128,7 +127,6 @@ class PasswordManager:
     print('Was möchten Sie tun? ', end = '')
     option = int(input())
     print('')
-
 
     # create DB
     if (option == 1):
@@ -171,66 +169,69 @@ class PasswordManager:
 # +------------------------------------------------------------------+
   def __showDatabaseMenu(self, file)-> None:
     file_name = os.path.basename(file.name)
-    self.__printHeader('(' + file_name + ')')
-    print(' 1.) Existierende Passwörter anzeigen')
-    print(' 2.) Neues Passwort hinzufügen')
-    print(' 3.) Löschen eines Passworts')
-    print(' 4.) Aktualisieren eines Passworts')
-    print(' 5.) Beenden')
-
     file_name = file_name.split('.')[0]
-    self.__decryptFile(file_name)
 
-    print('Was möchten Sie tun? ', end = '')
-    option = int(input())
-
-    if (option == 1):
-      password_list = self.__getPasswordList(file)
-      self.__printPasswords(password_list)
-
-    if (option == 2):
-      print('Geben Sie einen Usernamen ein: ')
-      username = str(input())
-      print('Geben Sie ein Passwort ein: ')
-      password = str(input())
-      print('Geben Sie eine URL ein: ')
-      url = str(input())
-      print('Geben Sie dem Eintrag eine Notiz: ')
-      notiz = str(input())
-
-      file = open(file.name, 'a')
-      file.write(username + ':' + password + ':' + url + ':' + notiz + '\n')
-      print('')
-      
-    if (option == 3):
-      password_list = self.__getPasswordList(file)
-      self.__printPasswords(password_list)
-      
-      print('Welches Passwort soll gelöscht werden? ', end = '')
+    isRunning = True
+    while isRunning:
+      self.__printHeader('(' + file_name + '.txt)')
+      print(' 1.) Existierende Passwörter anzeigen')
+      print(' 2.) Neues Passwort hinzufügen')
+      print(' 3.) Löschen eines Passworts')
+      print(' 4.) Aktualisieren eines Passworts')
+      print(' 5.) Beenden')  
+      print('Was möchten Sie tun? ', end = '')
       option = int(input())
-      password_list.remove(password_list[option])
+  
+      if (option == 1):
+        self.__decryptFile(file_name)
+        password_list = self.__getPasswordList(file)
+        self.__printPasswords(password_list)
+      elif (option == 2):
+        self.__decryptFile(file_name)
+        print('Geben Sie einen Usernamen ein: ')
+        username = str(input())
+        print('Geben Sie ein Passwort ein: ')
+        password = str(input())
+        print('Geben Sie eine URL ein: ')
+        url = str(input())
+        print('Geben Sie dem Eintrag eine Notiz: ')
+        notiz = str(input())
 
-      file = open(file.name, 'w')
-      self.__updateDatabase(file, password_list)
+        file = open(file.name, 'a')
+        file.write(username + ':' + password + ':' + url + ':' + notiz + '\n')
 
-    if (option == 4):
-      password_list = self.__getPasswordList(file)
-      self.__printPasswords(password_list)
-
-      print('Welches Passwort soll geändert werden? ', end = '')
-      option = int(input())
-
-      print('Bitte geben sie ein neues Passwort ein:  ')
-      password_list[option][2] = str(input())
-
-      file = open(file.name, 'w')
-      self.__updateDatabase(file, password_list)
-
-    if (option == 5):
-      return
-    
-    file.close()
-    self.__encryptFile(file_name)
+        file = open(file.name, 'r')
+        print('')
+      elif (option == 3):
+        self.__decryptFile(file_name)
+        password_list = self.__getPasswordList(file)
+        self.__printPasswords(password_list)
+        
+        print('Welches Passwort soll gelöscht werden? ', end = '')
+        option = int(input())
+        password_list.remove(password_list[option])
+  
+        file = open(file.name, 'w')
+        self.__updateDatabase(file, password_list)
+      elif (option == 4):
+        self.__decryptFile(file_name)
+        password_list = self.__getPasswordList(file)
+        self.__printPasswords(password_list)
+  
+        print('Welches Passwort soll geändert werden? ', end = '')
+        option = int(input())
+  
+        print('Bitte geben sie ein neues Passwort ein:  ')
+        password_list[option][2] = str(input())
+  
+        file = open(file.name, 'w')
+        self.__updateDatabase(file, password_list)
+      elif (option == 5):
+        # Stop the while loop
+        self.__decryptFile(file_name)
+        isRunning = False
+      
+      self.__encryptFile(file_name)
 
 
 # +------------------------------------------------------------------+
