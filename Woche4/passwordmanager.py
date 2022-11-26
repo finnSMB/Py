@@ -1,3 +1,4 @@
+from cryptography.fernet import Fernet
 import os
 
 class PasswordManager:
@@ -11,25 +12,32 @@ class PasswordManager:
 # |                        Private functions                         |
 # +------------------------------------------------------------------+
   # Check if folder exists and if not, create one
-  def __createFolder(self):
+  def __createFolder(self)-> None:
     if os.path.isdir(self.__folderpath):
       return
-    else:
+    else: 
       os.makedirs(self.__folderpath)
-  
+      os.makedirs(self.__folderpath + 'Keys')
+
   # Get a list of all the files inside the folder
-  def __getFolderContentList(self):
+  def __getFolderContentList(self)-> list:
     dir_content = os.listdir(self.__folderpath)
+
+    # remove folders and only show files
+    for item in dir_content:
+      if os.path.isfile(item) == False:
+        dir_content.remove(item)
+
     return dir_content
-  
+
   # Print pretty menubar, optional text usually is the selected database
-  def __printHeader(self, additionalText=""):
-    print("="*40)
-    print('{:^40s}'.format(self.name + " " + additionalText))
-    print("="*40)
+  def __printHeader(self, additionalText:str = '')-> None:
+    print('=' * 40)
+    print('{:^40s}'.format(self.name + ' ' + additionalText))
+    print('=' * 40)
 
   # get the password list
-  def __getPasswordList(self, file):
+  def __getPasswordList(self, file)-> list:
     password_list = list()
 
     file_content = file.read()
@@ -53,25 +61,24 @@ class PasswordManager:
     return password_list
 
   # create a pretty console output that looks like a table
-  def __printPasswords(self, list: list):
-    print("-"*100)
-    print('{:20s}'.format('Index'), end="")
-    print('{:20s}'.format('Name'), end="")
-    print('{:20s}'.format('Passwort'), end="")
-    print('{:20s}'.format('URL'), end="")
+  def __printPasswords(self, list: list)-> None:
+    print('-'*100)
+    print('{:20s}'.format('Index'), end='')
+    print('{:20s}'.format('Name'), end='')
+    print('{:20s}'.format('Passwort'), end='')
+    print('{:20s}'.format('URL'), end='')
     print('{:20s}'.format('Notiz'))
-    print("-"*100)
+    print('-'*100)
 
     for element in list:
       for x in element:
-        print('{:20s}'.format(x), end="")
-      print("")
-    
-    print("")
-  
+        print('{:20s}'.format(x), end='')
+      print('')
+    print('')
+
   # rewrite the whole database with the updated and new list entries
-  def __updateDatabase(self, file, new_password_list):
-    file.write("")
+  def __updateDatabase(self, file, new_password_list: list)-> None:
+    file.write('')
     file = open(file.name, 'a')
     for entry in new_password_list:
       file.write(entry[1] + ':' + entry[2] + ':' + entry[3] + ':' + entry[4] + '\n')
@@ -80,42 +87,79 @@ class PasswordManager:
     file = open(file.name, 'r')
 
 # +------------------------------------------------------------------+
+# |                           Encryption                             |
+# +------------------------------------------------------------------+
+  def __generateKey(self, name:str)-> None:
+    key = Fernet.generate_key()
+    with open(self.__folderpath + '/Keys/' + name + '.txt', 'wb') as filekey:
+      filekey.write(key)
+
+  def __loadKey(self, name):
+    with open(self.__folderpath + '/Keys/' + name + '.txt', 'rb') as filekey:
+      key = filekey.read()
+    return key
+
+  def __encryptFile(self, name):
+    fernet = Fernet(self.__loadKey(name))
+    with open(self.__folderpath + name + '.txt', 'rb') as file:
+      original = file.read()
+
+    encrypted = fernet.encrypt(original)
+    with open(self.__folderpath + name + '.txt', 'wb') as encrypted_file:
+      encrypted_file.write(encrypted)
+
+  def __decryptFile(self, name):
+    fernet = Fernet(self.__loadKey(name))
+    with open(self.__folderpath + name + '.txt', 'rb') as enc_file:
+      encrypted = enc_file.read()
+
+    decrypted = fernet.decrypt(encrypted)
+    with open(self.__folderpath + name + '.txt', 'wb') as dec_file:
+      dec_file.write(decrypted)
+# +------------------------------------------------------------------+
 # |                Show initial menu with 3 options                  |
 # +------------------------------------------------------------------+
-  def run(self):
+  def run(self)-> None:
     self.__printHeader()
-    print(" 1.) Eine neue Datenbank erstellen")
-    print(" 2.) Eine bereits existierende Datenbank auswählen")
-    print(" 3.) Beenden")
+    print(' 1.) Eine neue Datenbank erstellen')
+    print(' 2.) Eine bereits existierende Datenbank auswählen')
+    print(' 3.) Beenden')
 
-    print("Was möchten Sie tun? ", end = "")
+    print('Was möchten Sie tun? ', end = '')
     option = int(input())
-    print("")
+    print('')
 
 
     # create DB
     if (option == 1):
-      print("Bitte geben sie der neuen Datenbank einen geeigneten Namen: ", end = "")
+      print('Bitte geben sie der neuen Datenbank einen geeigneten Namen: ', end = '')
       name = str(input())
-      file = open(self.__folderpath + name + ".txt", "w")
+      file = open(self.__folderpath + name + '.txt', 'w')
+
+      # Generate Encryption Key with same filename
+      self.__generateKey(name)
+
+      # Encrypt the file immediatly
+      self.__encryptFile(name)
       
-      self.showDatabaseMenu(file)
+      # show menu for edit/delete/add password
+      self.__showDatabaseMenu(file)
 
     # SHOW LIST OF DATABASES
     if (option == 2):
       folder_list = self.__getFolderContentList()
 
       for idx, x in enumerate(folder_list):
-        print("{0}.) {1}".format(idx,x))
+        print('{0}.) {1}'.format(idx,x))
 
-      print("Bitte geben Sie die Nummer der auszuwählenden Datenbank ein: ", end = "")
+      print('Bitte geben Sie die Nummer der auszuwählenden Datenbank ein: ', end = '')
       option = int(input())
 
       databank = self.__folderpath + folder_list[option]
 
       file = open(databank, 'r')
         
-      self.showDatabaseMenu(file)
+      self.__showDatabaseMenu(file)
 
       # exit
       if (option == 3):
@@ -125,72 +169,74 @@ class PasswordManager:
 # +------------------------------------------------------------------+
 # |                Show detailed database menu options               |
 # +------------------------------------------------------------------+
-  def showDatabaseMenu(self, file):
-    self.__printHeader("(" + os.path.basename(file.name) + ")")
-    print(" 1.) Existierende Passwörter anzeigen")
-    print(" 2.) Neues Passwort hinzufügen")
-    print(" 3.) Löschen eines Passworts")
-    print(" 4.) Aktualisieren eines Passworts")
-    print(" 5.) Beenden")
+  def __showDatabaseMenu(self, file)-> None:
+    file_name = os.path.basename(file.name)
+    self.__printHeader('(' + file_name + ')')
+    print(' 1.) Existierende Passwörter anzeigen')
+    print(' 2.) Neues Passwort hinzufügen')
+    print(' 3.) Löschen eines Passworts')
+    print(' 4.) Aktualisieren eines Passworts')
+    print(' 5.) Beenden')
 
-    print("Was möchten Sie tun? ", end = "")
+    file_name = file_name.split('.')[0]
+    self.__decryptFile(file_name)
+
+    print('Was möchten Sie tun? ', end = '')
     option = int(input())
 
-    if (type(option) == int):
-      if (option == 1):
-        password_list = self.__getPasswordList(file)
-        self.__printPasswords(password_list)
+    if (option == 1):
+      password_list = self.__getPasswordList(file)
+      self.__printPasswords(password_list)
 
-      if (option == 2):
-        print("Geben sie einen Usernamen ein: ")
-        username = str(input())
-        print("Geben sie ein Passwort ein: ")
-        password = str(input())
-        print("Geben sie eine URL ein: ")
-        url = str(input())
-        print("Geben sie eine Notiz: ")
-        notiz = str(input())
+    if (option == 2):
+      print('Geben Sie einen Usernamen ein: ')
+      username = str(input())
+      print('Geben Sie ein Passwort ein: ')
+      password = str(input())
+      print('Geben Sie eine URL ein: ')
+      url = str(input())
+      print('Geben Sie dem Eintrag eine Notiz: ')
+      notiz = str(input())
 
-        file = open(file.name, 'a')
-        file.write(username + ':' + password + ':' + url + ':' + notiz + '\n')
-        
-        print("")
+      file = open(file.name, 'a')
+      file.write(username + ':' + password + ':' + url + ':' + notiz + '\n')
+      print('')
       
-      if (option == 3):
-        password_list = self.__getPasswordList(file)
-        self.__printPasswords(password_list)
-        
-        print("Welches Passwort soll gelöscht werden? ", end = "")
-        option = int(input())
-        password_list.remove(password_list[option])
+    if (option == 3):
+      password_list = self.__getPasswordList(file)
+      self.__printPasswords(password_list)
+      
+      print('Welches Passwort soll gelöscht werden? ', end = '')
+      option = int(input())
+      password_list.remove(password_list[option])
 
-        file = open(file.name, 'w')
-        self.__updateDatabase(file, password_list)
+      file = open(file.name, 'w')
+      self.__updateDatabase(file, password_list)
 
+    if (option == 4):
+      password_list = self.__getPasswordList(file)
+      self.__printPasswords(password_list)
 
-      if (option == 4):
-        password_list = self.__getPasswordList(file)
-        self.__printPasswords(password_list)
-        
-        print("Welches Passwort soll geändert werden? ", end = "")
-        option = int(input())
+      print('Welches Passwort soll geändert werden? ', end = '')
+      option = int(input())
 
-        print("Bitte geben sie ein neues Passwort ein:  ")
-        password_list[option][2] = str(input())
+      print('Bitte geben sie ein neues Passwort ein:  ')
+      password_list[option][2] = str(input())
 
-        file = open(file.name, 'w')
-        self.__updateDatabase(file, password_list)
+      file = open(file.name, 'w')
+      self.__updateDatabase(file, password_list)
 
-      if (option == 5):
-        return
-    else:
-      print("Falscher Input, bitte nur Ganzzahlen benutzen!")
+    if (option == 5):
+      return
+    
+    file.close()
+    self.__encryptFile(file_name)
+
 
 # +------------------------------------------------------------------+
 # |                Execute code for testing purposes                 |
 # +------------------------------------------------------------------+
-if __name__ == "__main__":
+if __name__ == '__main__':
   # Create an instance of PW Manager
   pwManager = PasswordManager('Passwortmanager')
-
   pwManager.run()
