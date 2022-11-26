@@ -62,8 +62,9 @@ class PasswordManager:
 
     return password_list
 
-  # create a pretty console output that looks like a table
+  # create a pretty console output
   def __printPasswords(self, list: list)-> None:
+    # https://pypi.org/project/texttable/
     table = Texttable(110)
     rows = [
       ['Index', 'Name', 'Passwort', 'URL', 'Notiz'],
@@ -94,6 +95,7 @@ class PasswordManager:
 # +------------------------------------------------------------------+
 # |                           Encryption                             |
 # +------------------------------------------------------------------+
+  # https://cryptography.io/en/latest/fernet/
   def __generateKey(self, name:str)-> None:
     key = Fernet.generate_key()
     with open(self.__folderpath + '/Keys/' + name + '.txt', 'wb') as filekey:
