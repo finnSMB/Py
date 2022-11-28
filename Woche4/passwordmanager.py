@@ -79,7 +79,7 @@ class PasswordManager:
     table.add_rows(rows)
     table.set_deco(Texttable.HEADER | Texttable.BORDER)
     table.set_cols_dtype(['i', 't', 't', 't', 't'])
-    table.set_cols_align(['c', 'r', 'r', 'r', 'l'])
+    table.set_cols_align(['c', 'l', 'l', 'l', 'l'])
     print(table.draw())
 
   # rewrite the whole database with the updated and new list entries
@@ -241,6 +241,8 @@ class PasswordManager:
         # Stop the while loop
         self.__decryptFile(file_name)
         isRunning = False
+      else:
+        print('Nicht gefunden.')
       
       self.__encryptFile(file_name)
 
